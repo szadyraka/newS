@@ -137,6 +137,49 @@ public class Shop {
         mongo.close();
     }
 
+    static void doOperation(Shop shop){
+        //Add products to categories
+        for (String idCategory : shop.getIdCategoryList()){
+            for (int i = 0; i < 4; i++) {
+                shop.addProduct(idCategory,
+                        new Product("idProd" + i, "Product" + i, (double)10 + i, "Available"));
+            }
+        }
+        //Change status of the products in the category to «Absent»
+        String idCategory = shop.getIdCategoryList().get(0);
+        List<Product> productList = shop.getListProducts(idCategory);
+        for (Product product : productList){
+            product.setStatus("Absent");
+            shop.updateProduct(idCategory, product);
+        }
+
+        int idCategoryListSize = shop.getIdCategoryList().size();
+        Map<String, List<Product>> productListMap = new HashMap<String, List<Product>>();
+        int i = 1;
+        for ( ; i < idCategoryListSize; i++ ){
+            idCategory = shop.getIdCategoryList().get(i);
+            productList = shop.getListProducts(idCategory);
+            productListMap.put(idCategory, productList);
+        }
+        for (String key : productListMap.keySet()){
+            idCategory = key;
+            productList = productListMap.get(idCategory);
+            //Half of the products of the remaining categories, change the status to «Expected»
+            for (i = 0; i < productList.size()/2; i++){
+                Product product = productList.get(i);
+                product.setStatus("Expected");
+                shop.updateProduct(idCategory, product);
+            }
+            //For products that are available to increase the price by 20%
+            for (i = productList.size()/2; i < productList.size(); i++){
+                Product product = productList.get(i);
+                product.setPrice(product.getPrice() + product.getPrice() * 0.2);
+                shop.updateProduct(idCategory, product);
+            }
+        }
+
+    }
+
     @Override
     public String toString() {
         return "Shop{" +
